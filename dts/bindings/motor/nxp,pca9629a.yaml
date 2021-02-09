@@ -1,0 +1,47 @@
+# Copyright (c) 2021 arithmetics ITS
+# SPDX-License-Identifier: Apache-2.0
+
+description: PCA9629A I2C-bus advanced stepper motor controller
+
+compatible: "nxp,pca9629a"
+
+include: i2c-device.yaml
+
+properties:
+    phase:
+      type: string
+      required: true
+      description: |
+        Stepper motor drive format (output waveform)
+      enum:
+        - "one-phase"
+        - "two-phase"
+        - "half-step"
+
+    cw-output-state:
+      type: string
+      required: true
+      description: |
+        Clockwise output states after the motor stops
+
+        all-off   = Set all outputs low after motor stops
+        hold-last = Hold the last output states after motor stops
+        all-on    = Set all outputs high after motor stops
+      enum:
+        - "all-off"
+        - "hold-last"
+        - "all-on"
+
+    ccw-output-state:
+      type: string
+      required: true
+      description: |
+        Counter-clockwise output states after the motor stops
+
+        all-off   = Set all outputs low after motor stops
+        hold-last = Hold the last output states after motor stops
+        all-on    = Set all outputs high after motor stops
+      enum:
+        - "all-off"
+        - "hold-last"
+        - "all-on"

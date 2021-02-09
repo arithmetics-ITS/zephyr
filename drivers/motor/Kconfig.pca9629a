@@ -1,0 +1,14 @@
+# PCA9629A I2C-bus advanced stepper motor controller configuration options
+
+# Copyright (c) 2021 arithmetics ITS
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig MOTOR_PCA9629A
+	bool "PCA9629A Stepper Motor Controllers"
+	depends on I2C && NEWLIB_LIBC && NEWLIB_LIBC_FLOAT_PRINTF
+	help
+	  Enable driver for PCA9629A stepper motor controller.
+
+if MOTOR_PCA9629A
+
+endif # MOTOR_PCA9629A

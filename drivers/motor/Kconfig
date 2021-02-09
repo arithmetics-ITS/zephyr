@@ -1,0 +1,26 @@
+# Motor driver configuration options
+
+# Copyright (c) 2021 arithmetics ITS
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig MOTOR
+	bool "Motor Drivers"
+	help
+	  Enable config options for motor drivers.
+
+if MOTOR
+
+module = MOTOR
+module-str = motor
+source "subsys/logging/Kconfig.template.log_config"
+
+config MOTOR_INIT_PRIORITY
+	int "Motor driver initialization priority"
+	default 90
+	help
+	  System initialization priority for motor drivers.
+
+source "drivers/motor/Kconfig.pca9629a"
+
+
+endif # MOTOR

@@ -1,0 +1,16 @@
+/*
+ * Copyright (c) 2021 arithmetics ITS
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&i2c2 {
+	pca9629a@20 {
+		compatible = "nxp,pca9629a";
+		reg = <0x20>;
+		label = "PCA9629A";
+		phase = "two-phase";
+		cw-output-state = "all-off";
+		ccw-output-state = "all-off";
+	};
+};

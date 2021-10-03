@@ -1,0 +1,11 @@
+# LTC4150 Coulomb Counter/Battery Gas Gauge
+
+# Copyright (c) 2021 arithmetics.io
+# SPDX-License-Identifier: Apache-2.0
+
+menuconfig LTC4150
+	bool "LTC4150 Coulomb Counter/Battery Gas Gauge"
+	depends on GPIO && NEWLIB_LIBC
+	help
+	  Enable driver for LTC4150 Coulomb Counter/Battery Gas Gauge.
+

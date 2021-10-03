@@ -1,0 +1,10 @@
+sample:
+  name: ltc4150 sample
+  description: LTC4150 sample application
+tests:
+  sample.sensor.ltc4150:
+    harness: sensor
+    tags: sensors
+    platform_allow: nrf52840_mdk
+    integration_platforms:
+      - nrf52840_mdk

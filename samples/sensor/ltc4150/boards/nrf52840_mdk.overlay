@@ -1,0 +1,14 @@
+/*
+ * Copyright (c) 2021 arithmetics.io
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+ltc4150 {
+	compatible = "adi,ltc4150";
+	label = "LTC4150";
+	int-gpios = <&gpio0 27 GPIO_ACTIVE_LOW>;
+	pol-gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
+	shdn-gpios = <&gpio0 25 GPIO_ACTIVE_LOW>;
+};
+

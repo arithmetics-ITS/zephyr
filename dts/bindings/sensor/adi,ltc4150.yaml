@@ -1,0 +1,40 @@
+# Copyright (c) 2021 arithmetics.io
+# SPDX-License-Identifier: Apache-2.0
+
+description: Analog Devices LTC4150 Coulomb Counter/Battery Gas Gauge
+compatible: "adi,ltc4150"
+
+include: base.yaml
+
+properties:
+    int-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The INT pin defaults to active low when produced by the sensor.
+        The property value should ensure the flags properly describe
+        the signal that is presented to the driver.
+
+    clr-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The CLEAR pin defaults to active low when consumed by the sensor.
+        The property value should ensure the flags properly describe
+        the signal that is presented to the driver.
+
+    pol-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The POL pin defaults to active high when consumed by the sensor.
+        The property value should ensure the flags properly describe
+        the signal that is presented to the driver.
+    
+    shdn-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The SHDN (shutdown) pin defaults to active low when consumed by the sensor.
+        The property value should ensure the flags properly describe
+        the signal that is presented to the driver.

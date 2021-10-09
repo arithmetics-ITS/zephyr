@@ -21,10 +21,25 @@ LOG_MODULE_DECLARE(LTC4150, CONFIG_SENSOR_LOG_LEVEL);
 static void ltc4150_thread_cb(const struct device *dev)
 {
 	struct ltc4150_data *drv_data = dev->data;
-	uint16_t status;
+	const struct ltc4150_config *cfg = dev->config;
+
+	/* Clear the INT pin by setting the CLR pin for 20us */
+	if (cfg->int_clr_gpio->name) {
+		gpio_pin_set(cfg->int_clr_gpio, cfg->int_clr_pin, 1);
+		k_sleep(K_USEC(20));
+		gpio_pin_set(cfg->int_clr_gpio, cfg->int_clr_pin, 0);
+	}
+
+	/* Increment/decrement charge_count based on the polarity pin.
+	    Increment = battery charging, decrement = battery draining */
+	if (gpio_pin_get(cfg->pol_gpio, cfg->pol_pin)) {
+		drv_data->charge_count++;
+	} else {
+		drv_data->charge_count--;
+	}
 
 	k_mutex_lock(&drv_data->trigger_mutex, K_FOREVER);
-	if ((drv_data->drdy_handler != NULL) && LTC4150_STATUS_DRDY(status)) {
+	if ((drv_data->drdy_handler != NULL)) {
 		drv_data->drdy_handler(dev, &drv_data->drdy_trigger);
 	}
 	k_mutex_unlock(&drv_data->trigger_mutex);
@@ -68,10 +83,9 @@ int ltc4150_trigger_set(const struct device *dev,
 {
 	struct ltc4150_data *drv_data = dev->data;
 	const struct ltc4150_config *cfg = dev->config;
-	uint16_t status, int_mask, int_en;
 	int ret;
 
-	gpio_pin_interrupt_configure(cfg->intb_gpio, cfg->intb_pin,
+	gpio_pin_interrupt_configure(cfg->int_gpio, cfg->int_pin,
 				     GPIO_INT_DISABLE);
 
 	switch (trig->type) {
@@ -80,8 +94,6 @@ int ltc4150_trigger_set(const struct device *dev,
 		drv_data->drdy_handler = handler;
 		drv_data->drdy_trigger = *trig;
 		k_mutex_unlock(&drv_data->trigger_mutex);
-
-		int_mask = LTC4150_ERROR_CONFIG_DRDY_2INT_MSK;
 		break;
 	default:
 		LOG_ERR("Unsupported sensor trigger");
@@ -89,17 +101,8 @@ int ltc4150_trigger_set(const struct device *dev,
 		goto out;
 	}
 
-	if (handler) {
-		int_en = int_mask;
-		drv_data->int_config |= int_mask;
-	} else {
-		int_en = 0U;
-	}
-
-	ret = ltc4150_reg_write_mask(dev,
-				     LTC4150_ERROR_CONFIG, int_mask, int_en);
 out:
-	gpio_pin_interrupt_configure(cfg->intb_gpio, cfg->intb_pin,
+	gpio_pin_interrupt_configure(cfg->int_gpio, cfg->int_pin,
 				     GPIO_INT_EDGE_TO_ACTIVE);
 
 	return ret;
@@ -113,26 +116,31 @@ int ltc4150_init_interrupt(const struct device *dev)
 
 	k_mutex_init(&drv_data->trigger_mutex);
 
-	if (!device_is_ready(cfg->intb_gpio)) {
-		LOG_ERR("%s: int_gpio device not ready", cfg->intb_gpio->name);
+	if (!device_is_ready(cfg->int_gpio)) {
+		LOG_ERR("%s: int_gpio device not ready", cfg->int_gpio->name);
 		return -ENODEV;
 	}
 
-	ret = ltc4150_set_interrupt_pin(dev, true);
-	if (ret) {
-		return ret;
-	}
-
-	gpio_pin_configure(cfg->intb_gpio, cfg->intb_pin,
-			   GPIO_INPUT | cfg->intb_flags);
+	gpio_pin_configure(cfg->int_gpio, cfg->int_pin,
+			   GPIO_INPUT | cfg->int_flags);
 
 	gpio_init_callback(&drv_data->gpio_cb,
 			   ltc4150_gpio_callback,
 			   BIT(cfg->int_pin));
 
-	if (gpio_add_callback(cfg->intb_gpio, &drv_data->gpio_cb) < 0) {
+	if (gpio_add_callback(cfg->int_gpio, &drv_data->gpio_cb) < 0) {
 		LOG_ERR("Failed to set gpio callback!");
 		return -EIO;
+	}
+
+	if (cfg->int_clr_gpio->name) {
+		if (device_is_ready(cfg->int_clr_gpio)) {
+			gpio_pin_configure(cfg->int_clr_gpio, cfg->int_clr_pin,
+					   GPIO_OUTPUT_ACTIVE | cfg->int_clr_flags);
+		} else {
+			LOG_ERR("%s: int_clr__gpio device not ready", cfg->int_clr_gpio->name);
+			return -ENODEV;
+		}
 	}
 
 	drv_data->dev = dev;

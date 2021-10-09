@@ -62,14 +62,9 @@ void main(void)
 #endif
 
 	while (1) {
-		if (sensor_sample_fetch(dev) < 0) {
-			printk("Sample fetch failed\n");
-			return;
-		}
-
-		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_TEMP, &val);
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_COULOMB_COUNT, &val);
 		printf("Value: %i", val.val1);
 
-		k_sleep(K_MSEC(100));
+		k_sleep(K_MSEC(5000));
 	}
 }

@@ -5,6 +5,6 @@ tests:
   sample.sensor.ltc4150:
     harness: sensor
     tags: sensors
-    platform_allow: nrf52840_mdk
+    platform_allow: nrf9160dk_nrf9160
     integration_platforms:
-      - nrf52840_mdk
+      - nrf9160dk_nrf9160

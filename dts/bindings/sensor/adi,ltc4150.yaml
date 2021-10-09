@@ -9,13 +9,13 @@ include: base.yaml
 properties:
     int-gpios:
       type: phandle-array
-      required: false
+      required: true
       description: |
-        The INT pin defaults to active low when produced by the sensor.
+        The INT (interrupt) pin defaults to active low when produced by the sensor.
         The property value should ensure the flags properly describe
         the signal that is presented to the driver.
 
-    clr-gpios:
+    int-clr-gpios:
       type: phandle-array
       required: false
       description: |
@@ -25,9 +25,9 @@ properties:
 
     pol-gpios:
       type: phandle-array
-      required: false
+      required: true
       description: |
-        The POL pin defaults to active high when consumed by the sensor.
+        The POL (polarity) pin defaults to active high when consumed by the sensor.
         The property value should ensure the flags properly describe
         the signal that is presented to the driver.
     
@@ -38,3 +38,9 @@ properties:
         The SHDN (shutdown) pin defaults to active low when consumed by the sensor.
         The property value should ensure the flags properly describe
         the signal that is presented to the driver.
+
+    shunt-resistance:
+        type: int
+        required: true
+        description: |
+          Resistence of the shunt resistor in milliohms

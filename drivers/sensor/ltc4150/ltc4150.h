@@ -11,7 +11,7 @@
 #include <drivers/gpio.h>
 
 struct ltc4150_data {
-	int16_t charge_count;
+	int16_t charge_counter;
 
 	struct gpio_callback gpio_cb;
 

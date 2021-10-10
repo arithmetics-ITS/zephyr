@@ -17,7 +17,6 @@ static void trigger_handler(const struct device *dev,
 {
 	switch (trigger->type) {
 	case SENSOR_TRIG_DATA_READY:
-		printk("INT - new count\n");
 		k_sem_give(&sem);
 		break;
 	default:
@@ -89,6 +88,18 @@ void main(void)
 		k_sem_take(&sem, K_FOREVER);
 
 		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_COULOMB_COUNT, &val);
-		printf("Coulomb count: %i\n", val.val1);
+		printk("Coulomb count: %i\n", val.val1);
+
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_FULL_AVAIL_CAPACITY, &val);
+		printk("Full capacity: %i mAh\n", val.val1);
+
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_REMAINING_CHARGE_CAPACITY, &val);
+		printf("Remaning capacity: %f mAh\n", sensor_value_to_double(&val));
+
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_STATE_OF_CHARGE, &val);
+		printf("SoC: %f %%\n", sensor_value_to_double(&val));
+
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_ACCUMULATED_CAPACITY, &val);
+		printf("Capacity consumed: %f mAh\n\n", sensor_value_to_double(&val));
 	}
 }

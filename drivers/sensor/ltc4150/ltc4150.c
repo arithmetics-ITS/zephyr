@@ -11,6 +11,7 @@
 #include <device.h>
 #include <sys/util.h>
 #include <logging/log.h>
+#include <math.h>
 
 #include "ltc4150.h"
 
@@ -72,6 +73,69 @@ static int ltc4150_device_pm_ctrl(const struct device *dev,
 #endif
 
 /**
+ * Get the mAh per coulomb count
+ * @param dev - The device structure.
+ * @param mah_quanta - Consumed energy per coulomb count
+ * @return 0 in case of success, negative error code otherwise.
+ */
+static int ltc4150_get_mah_quanta(const struct device *dev,
+				  double *mah_quanta)
+{
+	const struct ltc4150_config *cfg = dev->config;
+
+	*mah_quanta = fabs((1.0 / (3600.0 * 32.55 *
+				   (cfg->shunt_resistance / 1000.0)) * 1000.0));
+
+	return 0;
+}
+
+/**
+ * Get the remaining capacity in mAh
+ * @param dev - The device structure.
+ * @param remaining_capacity - The calculated remaining capacity.
+ * @return 0 in case of success, negative error code otherwise.
+ */
+static int ltc4150_get_remaining_capacity(const struct device *dev,
+					  double *remaining_capacity)
+{
+	struct ltc4150_data *data = dev->data;
+	const struct ltc4150_config *cfg = dev->config;
+
+	double mah_quanta;
+
+	ltc4150_get_mah_quanta(dev, &mah_quanta);
+
+	*remaining_capacity = (double)cfg->design_capacity +
+			      (mah_quanta * (data->charge_counter));
+
+	return 0;
+}
+
+/**
+ * Get the State of Charge (SOC) in %
+ * @param dev - The device structure.
+ * @param chan - The sensor channel type.
+ * @param val - The sensor channel value.
+ * @return 0 in case of success, negative error code otherwise.
+ */
+static int ltc4150_get_soc(const struct device *dev,
+			   double *soc)
+{
+	struct ltc4150_data *data = dev->data;
+	const struct ltc4150_config *cfg = dev->config;
+	double mah_quanta;
+	uint16_t counts_per_ah;
+
+	ltc4150_get_mah_quanta(dev, &mah_quanta);
+	counts_per_ah = 1000.0 / mah_quanta;
+
+	*soc = 100.0 + (1.0 / (cfg->design_capacity / 1000.0 * counts_per_ah / 100.0) *
+			data->charge_counter);
+
+	return 0;
+}
+
+/**
  * Get sensor channel value from the device.
  * @param dev - The device structure.
  * @param chan - The sensor channel type.
@@ -82,13 +146,34 @@ static int ltc4150_channel_get(const struct device *dev,
 			       enum sensor_channel chan,
 			       struct sensor_value *val)
 {
-	// const struct ltc4150_config *cfg = dev->config;
+	const struct ltc4150_config *cfg = dev->config;
 	struct ltc4150_data *data = dev->data;
+	double sensor_data;
 
 	switch ((int16_t)chan) {
 	case SENSOR_CHAN_GAUGE_COULOMB_COUNT:
-		val->val1 = (uint32_t)data->charge_count;
+		val->val1 = (int32_t)data->charge_counter;
 		val->val2 = 0;
+		break;
+	case SENSOR_CHAN_GAUGE_FULL_AVAIL_CAPACITY:
+		val->val1 = (uint32_t)cfg->design_capacity;
+		val->val2 = 0;
+		break;
+	case SENSOR_CHAN_GAUGE_REMAINING_CHARGE_CAPACITY:
+		ltc4150_get_remaining_capacity(dev, &sensor_data);
+		val->val1 = (uint32_t)sensor_data;
+		val->val2 = ((uint32_t)(sensor_data * 1000000)) % 1000000;
+		break;
+	case SENSOR_CHAN_GAUGE_STATE_OF_CHARGE:
+		ltc4150_get_soc(dev, &sensor_data);
+		val->val1 = (uint32_t)sensor_data;
+		val->val2 = ((uint32_t)(sensor_data * 1000000)) % 1000000;
+		break;
+	case SENSOR_CHAN_GAUGE_ACCUMULATED_CAPACITY:
+		ltc4150_get_mah_quanta(dev, &sensor_data);
+		sensor_data *= data->charge_counter;
+		val->val1 = (int32_t)sensor_data;
+		val->val2 = ((int32_t)(sensor_data * 1000000)) % 1000000;
 		break;
 	default:
 		LOG_ERR("Channel type not supported.");

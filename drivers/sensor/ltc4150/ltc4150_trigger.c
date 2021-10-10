@@ -33,9 +33,9 @@ static void ltc4150_thread_cb(const struct device *dev)
 	/* Increment/decrement charge_count based on the polarity pin.
 	    Increment = battery charging, decrement = battery draining */
 	if (gpio_pin_get(cfg->pol_gpio, cfg->pol_pin) == 1) {
-		drv_data->charge_count++;
+		drv_data->charge_counter++;
 	} else {
-		drv_data->charge_count--;
+		drv_data->charge_counter--;
 	}
 
 	k_mutex_lock(&drv_data->trigger_mutex, K_FOREVER);

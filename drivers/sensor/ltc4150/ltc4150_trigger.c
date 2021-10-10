@@ -32,7 +32,7 @@ static void ltc4150_thread_cb(const struct device *dev)
 
 	/* Increment/decrement charge_count based on the polarity pin.
 	    Increment = battery charging, decrement = battery draining */
-	if (gpio_pin_get(cfg->pol_gpio, cfg->pol_pin)) {
+	if (gpio_pin_get(cfg->pol_gpio, cfg->pol_pin) == 1) {
 		drv_data->charge_count++;
 	} else {
 		drv_data->charge_count--;
@@ -94,6 +94,7 @@ int ltc4150_trigger_set(const struct device *dev,
 		drv_data->drdy_handler = handler;
 		drv_data->drdy_trigger = *trig;
 		k_mutex_unlock(&drv_data->trigger_mutex);
+		ret = 0;
 		break;
 	default:
 		LOG_ERR("Unsupported sensor trigger");
@@ -105,6 +106,13 @@ out:
 	gpio_pin_interrupt_configure(cfg->int_gpio, cfg->int_pin,
 				     GPIO_INT_EDGE_TO_ACTIVE);
 
+	/* Clear the INT pin by setting the CLR pin for 20us */
+	if (cfg->int_clr_gpio->name) {
+		gpio_pin_set(cfg->int_clr_gpio, cfg->int_clr_pin, 1);
+		k_sleep(K_USEC(20));
+		gpio_pin_set(cfg->int_clr_gpio, cfg->int_clr_pin, 0);
+	}
+
 	return ret;
 }
 
@@ -112,7 +120,6 @@ int ltc4150_init_interrupt(const struct device *dev)
 {
 	struct ltc4150_data *drv_data = dev->data;
 	const struct ltc4150_config *cfg = dev->config;
-	int ret;
 
 	k_mutex_init(&drv_data->trigger_mutex);
 
@@ -138,8 +145,8 @@ int ltc4150_init_interrupt(const struct device *dev)
 			gpio_pin_configure(cfg->int_clr_gpio, cfg->int_clr_pin,
 					   GPIO_OUTPUT_ACTIVE | cfg->int_clr_flags);
 		} else {
-			LOG_ERR("%s: int_clr__gpio device not ready", cfg->int_clr_gpio->name);
-			return -ENODEV;
+			// LOG_ERR("%s: int_clr__gpio device not ready", cfg->int_clr_gpio->name);
+			// return -ENODEV;
 		}
 	}
 

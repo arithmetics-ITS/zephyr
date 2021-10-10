@@ -10,6 +10,20 @@
 #include <drivers/sensor.h>
 #include <stdio.h>
 
+K_SEM_DEFINE(sem, 0, 1);
+
+static void trigger_handler(const struct device *dev,
+			    struct sensor_trigger *trigger)
+{
+	switch (trigger->type) {
+	case SENSOR_TRIG_DATA_READY:
+		printk("INT - new count\n");
+		k_sem_give(&sem);
+		break;
+	default:
+		printk("Unknown trigger\n");
+	}
+}
 
 #ifdef CONFIG_PM_DEVICE
 static void pm_info(enum pm_device_state state, int status)
@@ -47,6 +61,16 @@ void main(void)
 		return;
 	}
 
+	struct sensor_trigger trig = {
+		.type = SENSOR_TRIG_DATA_READY,
+		.chan = SENSOR_CHAN_ALL,
+	};
+
+	if (sensor_trigger_set(dev, &trig, trigger_handler)) {
+		printk("Could not set trigger\n");
+		return;
+	}
+
 #ifdef CONFIG_PM_DEVICE
 	/* Testing the power modes */
 	enum pm_device_state p_state;
@@ -62,9 +86,9 @@ void main(void)
 #endif
 
 	while (1) {
-		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_COULOMB_COUNT, &val);
-		printf("Value: %i", val.val1);
+		k_sem_take(&sem, K_FOREVER);
 
-		k_sleep(K_MSEC(5000));
+		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_COULOMB_COUNT, &val);
+		printf("Coulomb count: %i\n", val.val1);
 	}
 }

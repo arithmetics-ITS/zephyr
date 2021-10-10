@@ -44,3 +44,8 @@ properties:
         required: true
         description: |
           Resistence of the shunt resistor in milliohms
+
+    design-capacity:
+        type: int
+        required: true
+        description: Battery Design Capacity in mAh

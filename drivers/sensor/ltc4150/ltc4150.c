@@ -82,8 +82,8 @@ static int ltc4150_channel_get(const struct device *dev,
 			       enum sensor_channel chan,
 			       struct sensor_value *val)
 {
-	//const struct ltc4150_config *cfg = dev->config;
-    struct ltc4150_data *data = dev->data;
+	// const struct ltc4150_config *cfg = dev->config;
+	struct ltc4150_data *data = dev->data;
 
 	switch ((int16_t)chan) {
 	case SENSOR_CHAN_GAUGE_COULOMB_COUNT:
@@ -100,12 +100,13 @@ static int ltc4150_channel_get(const struct device *dev,
 
 static const struct sensor_driver_api ltc4150_api_funcs = {
 	.channel_get = ltc4150_channel_get,
+	.trigger_set = ltc4150_trigger_set
 };
 
 static int ltc4150_init_config(const struct device *dev)
 {
-	//const struct ltc4150_config *cfg = dev->config;
-	//struct ltc4150_data *data = dev->data;
+	// const struct ltc4150_config *cfg = dev->config;
+	// struct ltc4150_data *data = dev->data;
 
 	return 0;
 }
@@ -175,6 +176,11 @@ static int ltc4150_init(const struct device *dev)
 		return -EIO;
 	}
 
+	if (ltc4150_init_interrupt(dev) < 0) {
+		LOG_ERR("Failed to initialize interrupt!");
+		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -214,24 +220,25 @@ static int ltc4150_init(const struct device *dev)
 	IF_ENABLED(DT_INST_NODE_HAS_PROP(n, shdn_gpios), \
 		   (LTC4150_SHDN_PROPS(n)))
 
-#define LTC4150_INIT(n)						     \
-	static struct ltc4150_data ltc4150_data_##n;		     \
-								     \
-	static const struct ltc4150_config ltc4150_config_##n = {    \
-		LTC4150_INT(n)					     \
-		LTC4150_INT_CLR(n)				     \
-		LTC4150_POL(n)					     \
-		LTC4150_SHDN(n)					     \
-		.shunt_resistance = DT_INST_PROP(n, shunt_resistance) \
-	};							     \
-								     \
-	DEVICE_DT_INST_DEFINE(n,				     \
-			      ltc4150_init,			     \
-			      ltc4150_device_pm_ctrl,		     \
-			      &ltc4150_data_##n,		     \
-			      &ltc4150_config_##n,		     \
-			      POST_KERNEL,			     \
-			      CONFIG_SENSOR_INIT_PRIORITY,	     \
+#define LTC4150_INIT(n)						       \
+	static struct ltc4150_data ltc4150_data_##n;		       \
+								       \
+	static const struct ltc4150_config ltc4150_config_##n = {      \
+		LTC4150_INT(n)					       \
+		LTC4150_INT_CLR(n)				       \
+		LTC4150_POL(n)					       \
+		LTC4150_SHDN(n)					       \
+		.shunt_resistance = DT_INST_PROP(n, shunt_resistance), \
+		.design_capacity = DT_INST_PROP(n, design_capacity)    \
+	};							       \
+								       \
+	DEVICE_DT_INST_DEFINE(n,				       \
+			      ltc4150_init,			       \
+			      ltc4150_device_pm_ctrl,		       \
+			      &ltc4150_data_##n,		       \
+			      &ltc4150_config_##n,		       \
+			      POST_KERNEL,			       \
+			      CONFIG_SENSOR_INIT_PRIORITY,	       \
 			      &ltc4150_api_funcs);
 
 DT_INST_FOREACH_STATUS_OKAY(LTC4150_INIT)

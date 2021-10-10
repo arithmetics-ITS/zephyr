@@ -5,7 +5,8 @@
 
 menuconfig LTC4150
 	bool "LTC4150 Coulomb Counter/Battery Gas Gauge"
-	depends on GPIO && NEWLIB_LIBC
+	depends on NEWLIB_LIBC
+	select LTC4150_TRIGGER
 	help
 	  Enable driver for LTC4150 Coulomb Counter/Battery Gas Gauge.
 
@@ -13,12 +14,9 @@ if LTC4150
 
 choice
 	prompt "Trigger mode"
-	default LTC4150_TRIGGER_NONE
+	default LTC4150_TRIGGER_OWN_THREAD
 	help
 	  Specify the type of triggering used by the driver.
-
-config LTC4150_TRIGGER_NONE
-	bool "No trigger"
 
 config LTC4150_TRIGGER_GLOBAL_THREAD
 	bool "Use global thread"

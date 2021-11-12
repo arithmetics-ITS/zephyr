@@ -24,6 +24,7 @@ static int bq35100_get_security_mode(const struct device *dev);
 static int bq35100_get_status(const struct device *dev, uint16_t *status);
 static int bq35100_set_design_capacity(const struct device *dev, uint16_t capacity);
 void bq35100_float_to_DF(float val, char *result);
+static int bq35100_use_int_temp(const struct device *dev, bool internal);
 
 /**
  * Read/Write from device.
@@ -917,6 +918,45 @@ static int bq35100_get_battery_alert(const struct device *dev)
 }
 
 /**
+ * Whether to use internal temperature sensor for calculations
+ * @param dev - The device structure.
+ * @param enable - true = internal, false = external
+ * @return 0 in case of success, negative error code otherwise.
+ */
+static int bq35100_use_int_temp(const struct device *dev, bool enable)
+{
+	uint8_t buf[1];
+	int status;
+
+	status = bq35100_read_extended_data(dev, BQ35100_FLASH_OPERATION_CFG_A, &buf, 1);
+	if (status < 0) {
+		return -EIO;
+	}
+
+	if (!(buf[0] >> 7) != enable) {
+		if (enable) {
+			buf[0] &= ~0b10000000;
+
+		} else {
+            buf[0] |= 0b10000000;
+        }
+
+		k_sleep(K_MSEC(50));
+
+		status = bq35100_write_extended_data(dev, BQ35100_FLASH_OPERATION_CFG_A, &buf, 1);
+		if (status < 0) {
+			return -EIO;
+		}
+		LOG_DBG("Temperature setting set to %s", enable ? "internal" : "external");
+
+	} else {
+		LOG_ERR("Temperature setting already set");
+	}
+
+	return 0;
+}
+
+/**
  * Enter/exit calibration mode
  * @param dev - The device structure.
  * @param enable - determines enter(1) or exit (0)
@@ -1158,7 +1198,7 @@ static int bq35100_cal_temp(const struct device *dev, uint16_t temp)
  * @param val - value to be converted
  * @param result - a place to put the read data (4 bytes long)
  */
-void bq35100_float_to_DF(float val, uint8_t *result)
+void bq35100_float_to_DF(float val, char *result)
 {
 	int32_t exp = 0;
     float mod_val = val;
@@ -1498,15 +1538,15 @@ static int bq35100_init(const struct device *dev)
 		return -EIO;
 	}*/
 
-	/*if (bq35100_set_security_mode(dev, BQ35100_SECURITY_FULL_ACCESS)) {
+	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_FULL_ACCESS)) {
 	    return EIO;
-	}*/
+	}
 
 	/*if (bq35100_new_battery(dev, 2200) < 0) {
 		return -EIO;
 	}*/
 
-	if (bq35100_set_gauge_mode(dev, BQ35100_ACCUMULATOR_MODE)) {
+	if (bq35100_set_gauge_mode(dev, BQ35100_EOS_MODE)) {
 	    return EIO;
 	}
 
@@ -1518,6 +1558,10 @@ static int bq35100_init(const struct device *dev)
 	    return -EIO;
 	}
 
+	if (bq35100_use_int_temp(dev, true) < 0) {
+		return -EIO;
+	}
+
 	/*if (bq35100_enter_cal_mode(dev, true) < 0) {
 		return -EIO;
 	}*/
@@ -1526,10 +1570,9 @@ static int bq35100_init(const struct device *dev)
 		return -EIO;
 	}*/
 
-	// does not work
-	if (bq35100_cal_current(dev, 13) < 0) {
+	/*if (bq35100_cal_current(dev, 13) < 0) {
 		return -EIO;
-	}
+	}*/
 
 	/*if (bq35100_cal_temp(dev, 2950) < 0) {
 		return -EIO;

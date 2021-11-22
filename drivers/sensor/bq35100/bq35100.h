@@ -305,6 +305,10 @@ struct bq35100_config {
 	const struct device *ge_gpio;
 	gpio_pin_t ge_pin;
 	gpio_dt_flags_t ge_flags;
+
+	uint16_t design_capacity;
+	int16_t cal_voltage;
+	bq35100_gauge_mode_t gauge_mode;
 };
 
 #endif  /* ZEPHYR_DRIVERS_SENSOR_BQ35100_BQ35100_H_ */

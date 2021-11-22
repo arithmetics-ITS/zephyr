@@ -309,6 +309,9 @@ struct bq35100_config {
 	uint16_t design_capacity;
 	int16_t cal_voltage;
 	bq35100_gauge_mode_t gauge_mode;
+	bq35100_security_mode_t security_mode;
+	uint8_t device_id;
+	uint8_t battery_status;
 };
 
 #endif  /* ZEPHYR_DRIVERS_SENSOR_BQ35100_BQ35100_H_ */

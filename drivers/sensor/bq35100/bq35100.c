@@ -966,13 +966,13 @@ static int bq35100_enter_cal_mode(const struct device *dev, bool enable)
 {
 	k_sleep(K_MSEC(1000));
 
-	if ( bq35100_control_reg_write(dev, enable ?
+	if (bq35100_control_reg_write(dev, enable ?
 			BQ35100_CTRL_ENTER_CAL : BQ35100_CTRL_EXIT_CAL) < 0) {
 		LOG_ERR("Unable to change calibration mode");
 		return -EIO;
 	}
 
-	if ( bq35100_wait_for_status(dev, enable ? BQ35100_CAL_MODE_BIT_MASK : 0,
+	if (bq35100_wait_for_status(dev, enable ? BQ35100_CAL_MODE_BIT_MASK : 0,
 			BQ35100_CAL_MODE_BIT_MASK, 1000) < 0) {
 		LOG_ERR("Calibration error/timeout");
 	}
@@ -1606,11 +1606,7 @@ static int bq35100_init(const struct device *dev)
 		.i2c_addr = DT_INST_REG_ADDR(n),		  \
 		BQ35100_GE(n)					  \
 		.design_capacity = DT_INST_PROP(n, capacity),  \
-		.cal_voltage = DT_INST_PROP(n, voltage),  \
-		.gauge_mode = DT_INST_PROP(n, gauge),  \
-		.security_mode = DT_INST_PROP(n, security),  \
-		.device_id = DT_INST_PROP(n, device),  \
-		.battery_status = DT_INST_PROP(n, battery),  \
+		.gauge_mode = DT_INST_PROP(n, gauge_mode),  \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

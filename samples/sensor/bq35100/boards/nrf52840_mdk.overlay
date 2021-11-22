@@ -13,10 +13,6 @@
 		ge-gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
 		alert-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
 		capacity = <2200>;
-		voltage = <3615>;
-		gauge = <2>;
-		security = <2>;
-		device = <4>;
-		battery = <1>;
+		gauge-mode = <2>;
 	};
 };

@@ -29,13 +29,7 @@ properties:
       description: |
         The design capacity of the battery in mAh.
 
-    voltage:
-      type: int
-      required: false
-      description: |
-        Calibrated voltage with known current in mV.
-
-    gauge:
+    gauge-mode:
       type: int
       required: true
       description: |
@@ -49,30 +43,3 @@ properties:
         - 0
         - 1
         - 2
-
-    security:
-      type: int
-      required: true
-      description: |
-        The security mode the device in currently.
-
-        1 = FULL ACCESS
-        2 = USNEALED
-        3 = SEALED
-
-      enum:
-        - 1
-        - 2
-        - 3
-
-    device:
-      type: int
-      required: true
-      description: |
-        Device type ID.
-
-    battery:
-      type: int
-      required: true
-      description: |
-        Status of the battery.

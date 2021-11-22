@@ -29,23 +29,50 @@ properties:
       description: |
         The design capacity of the battery in mAh.
 
-    cal_voltage:
+    voltage:
       type: int
       required: false
       description: |
         Calibrated voltage with known current in mV.
 
-    #gauge_mode:
-      #type: phandle-array
-      #required: true
-      #description: |
-        #The gauge mode the device in currently.
+    gauge:
+      type: int
+      required: true
+      description: |
+        The gauge mode the device in currently.
 
-        #0 = ACCUMULATOR
-        #1 = SOH
-        #2 = EOS
+        0 = ACCUMULATOR
+        1 = SOH
+        2 = EOS
 
-      #enum:
-        #- 0
-        #- 1
-        #- 2
+      enum:
+        - 0
+        - 1
+        - 2
+
+    security:
+      type: int
+      required: true
+      description: |
+        The security mode the device in currently.
+
+        1 = FULL ACCESS
+        2 = USNEALED
+        3 = SEALED
+
+      enum:
+        - 1
+        - 2
+        - 3
+
+    device:
+      type: int
+      required: true
+      description: |
+        Device type ID.
+
+    battery:
+      type: int
+      required: true
+      description: |
+        Status of the battery.

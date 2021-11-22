@@ -1606,8 +1606,11 @@ static int bq35100_init(const struct device *dev)
 		.i2c_addr = DT_INST_REG_ADDR(n),		  \
 		BQ35100_GE(n)					  \
 		.design_capacity = DT_INST_PROP(n, capacity),  \
-		.cal_voltage = DT_INST_PROP(n, cal_voltage),  \
-		/*.gauge_mode = DT_INST_PROP(n, gauge_mode)  */\
+		.cal_voltage = DT_INST_PROP(n, voltage),  \
+		.gauge_mode = DT_INST_PROP(n, gauge),  \
+		.security_mode = DT_INST_PROP(n, security),  \
+		.device_id = DT_INST_PROP(n, device),  \
+		.battery_status = DT_INST_PROP(n, battery),  \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

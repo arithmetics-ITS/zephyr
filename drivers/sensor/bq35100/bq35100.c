@@ -1606,7 +1606,10 @@ static int bq35100_init(const struct device *dev)
 		.i2c_addr = DT_INST_REG_ADDR(n),		  \
 		BQ35100_GE(n)					  \
 		.design_capacity = DT_INST_PROP(n, capacity),  \
-		.gauge_mode = DT_INST_PROP(n, gauge_mode),  \
+		.gauge_mode =					   \
+			DT_ENUM_IDX(DT_DRV_INST(n), gauge_mode),  \
+		.temp_sensor =					   \
+			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor),  \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

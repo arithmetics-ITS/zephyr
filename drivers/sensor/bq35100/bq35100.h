@@ -281,6 +281,11 @@ typedef enum {
 	BQ35100_SECURITY_SEALED         // Normal operating mode, prevents accidental writes
 } bq35100_security_mode_t;
 
+typedef enum {
+	BQ35100_INT_TEMP,
+	BQ35100_EXT_TEMP
+} bq35100_temp_sensor_t;
+
 struct bq35100_data {
 	uint16_t temperature;
 	uint16_t internal_temperature;
@@ -308,6 +313,7 @@ struct bq35100_config {
 
 	uint16_t design_capacity;
 	bq35100_gauge_mode_t gauge_mode;
+	bq35100_temp_sensor_t temp_sensor;
 };
 
 #endif  /* ZEPHYR_DRIVERS_SENSOR_BQ35100_BQ35100_H_ */

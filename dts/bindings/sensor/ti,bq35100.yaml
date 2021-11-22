@@ -38,8 +38,20 @@ properties:
         0 = ACCUMULATOR
         1 = SOH
         2 = EOS
-
       enum:
         - 0
         - 1
         - 2
+
+    temp-sensor:
+      type: string
+      required: false
+      default: "external"
+      description: |
+        Whether to use internal or external temperature sensor for calculations.
+
+        internal = Use internal temperature sensor.
+        external = Use external temperature sensor.
+      enum:
+        - "internal"
+        - "external"

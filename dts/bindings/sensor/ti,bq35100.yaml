@@ -41,11 +41,11 @@ properties:
       #description: |
         #The gauge mode the device in currently.
 
-        #1 = FULL ACCESS
-        #2 = UNSEALED
-        #3 = SEALED
+        #0 = ACCUMULATOR
+        #1 = SOH
+        #2 = EOS
 
       #enum:
+        #- 0
         #- 1
         #- 2
-        #- 3

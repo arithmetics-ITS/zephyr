@@ -22,3 +22,30 @@ properties:
         The ALERT pin defaults to active low when produced by the sensor.
         The property value should ensure the flags properly describe
         the signal that is presented to the driver.
+
+    capacity:
+      type: int
+      required: true
+      description: |
+        The design capacity of the battery in mAh.
+
+    cal_voltage:
+      type: int
+      required: false
+      description: |
+        Calibrated voltage with known current in mV.
+
+    #gauge_mode:
+      #type: phandle-array
+      #required: true
+      #description: |
+        #The gauge mode the device in currently.
+
+        #1 = FULL ACCESS
+        #2 = UNSEALED
+        #3 = SEALED
+
+      #enum:
+        #- 1
+        #- 2
+        #- 3

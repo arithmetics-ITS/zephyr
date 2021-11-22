@@ -12,5 +12,8 @@
 		label = "BQ35100";
 		ge-gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
 		alert-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
+		capacity = <2200>;
+		cal_voltage = <3615>;
+		//gague_mode = <2>;
 	};
 };

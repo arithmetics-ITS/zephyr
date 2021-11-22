@@ -1525,6 +1525,10 @@ static int bq35100_init(const struct device *dev)
 		return -EIO;
 	}
 	
+	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_SEALED)) {
+		return EIO;
+	}
+
 	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_UNSEALED)) {
 		return EIO;
 	}
@@ -1558,9 +1562,9 @@ static int bq35100_init(const struct device *dev)
 	    return -EIO;
 	}
 
-	if (bq35100_use_int_temp(dev, true) < 0) {
+	/*if (bq35100_use_int_temp(dev, false) < 0) {
 		return -EIO;
-	}
+	}*/
 
 	/*if (bq35100_enter_cal_mode(dev, true) < 0) {
 		return -EIO;
@@ -1601,6 +1605,9 @@ static int bq35100_init(const struct device *dev)
 		.bus = DEVICE_DT_GET(DT_INST_BUS(n)),		  \
 		.i2c_addr = DT_INST_REG_ADDR(n),		  \
 		BQ35100_GE(n)					  \
+		.design_capacity = DT_INST_PROP(n, capacity),  \
+		.cal_voltage = DT_INST_PROP(n, cal_voltage),  \
+		/*.gauge_mode = DT_INST_PROP(n, gauge_mode)  */\
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

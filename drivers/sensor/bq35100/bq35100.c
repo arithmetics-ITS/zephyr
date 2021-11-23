@@ -925,7 +925,7 @@ static int bq35100_get_battery_alert(const struct device *dev)
  */
 static int bq35100_use_int_temp(const struct device *dev, bool enable)
 {
-	uint8_t buf[1];
+	uint8_t buf;
 	int status;
 
 	status = bq35100_read_extended_data(dev, BQ35100_FLASH_OPERATION_CFG_A, &buf, 1);
@@ -933,12 +933,12 @@ static int bq35100_use_int_temp(const struct device *dev, bool enable)
 		return -EIO;
 	}
 
-	if (!(buf[0] >> 7) != enable) {
+	if (!(buf >> 7) != enable) {
 		if (enable) {
-			buf[0] &= ~0b10000000;
+			buf &= ~0b10000000;
 
 		} else {
-            buf[0] |= 0b10000000;
+            buf |= 0b10000000;
         }
 
 		k_sleep(K_MSEC(50));
@@ -956,6 +956,7 @@ static int bq35100_use_int_temp(const struct device *dev, bool enable)
 	return 0;
 }
 
+#ifdef CONFIG_BQ35100_CALIBRATION_MODE
 /**
  * Enter/exit calibration mode
  * @param dev - The device structure.
@@ -1251,6 +1252,7 @@ void bq35100_float_to_DF(float val, char *result)
         memcpy(result, data, 4);
     }
 }
+#endif
 
 #ifdef CONFIG_PM_DEVICE
 
@@ -1279,8 +1281,8 @@ static int bq35100_set_gauge_enable(const struct device *dev, bool enable)
 static int bq35100_device_pm_ctrl(const struct device *dev,
 				  enum pm_device_action action)
 {
-	int ret;
-	struct bq35100_data *data = dev->data;
+	int ret = 0;
+	// struct bq35100_data *data = dev->data;
 	const struct bq35100_config *cfg = dev->config;
 	enum pm_device_state curr_state;
 
@@ -1290,7 +1292,8 @@ static int bq35100_device_pm_ctrl(const struct device *dev,
 	case PM_DEVICE_ACTION_RESUME:
 		if (curr_state == PM_DEVICE_STATE_OFF) {
 			ret = bq35100_set_gauge_enable(dev, true);
-			k_sleep(K_MSEC(1000));
+			k_sleep(K_MSEC(200));
+			ret = bq35100_gauge_start(dev);
 		}
 		break;
 	case PM_DEVICE_ACTION_SUSPEND:
@@ -1298,6 +1301,7 @@ static int bq35100_device_pm_ctrl(const struct device *dev,
 		break;
 	case PM_DEVICE_ACTION_TURN_OFF:
 		if (cfg->ge_gpio->name) {
+			bq35100_gauge_stop(dev);
 			ret = bq35100_set_gauge_enable(dev, false);
 		} else {
 			LOG_ERR("GE pin not defined");
@@ -1305,7 +1309,7 @@ static int bq35100_device_pm_ctrl(const struct device *dev,
 		}
 		break;
 	default:
-		return -ENOTSUP;
+		ret = -ENOTSUP;
 	}
 
 	return ret;
@@ -1367,7 +1371,7 @@ static int bq35100_sample_fetch(const struct device *dev,
 				enum sensor_channel chan)
 {
 #ifdef CONFIG_PM_DEVICE
-	struct bq35100_data *data = dev->data;
+	// struct bq35100_data *data = dev->data;
 	enum pm_device_state state;
 
 	(void)pm_device_state_get(dev, &state);
@@ -1524,67 +1528,75 @@ static int bq35100_init(const struct device *dev)
 	if (bq35100_get_security_mode(dev) < 0) {
 		return -EIO;
 	}
-	
+
+	// if (bq35100_set_security_mode(dev, BQ35100_SECURITY_UNSEALED)) {
+	// 	return EIO;
+	// }
+
+	/*if (bq35100_get_battery_alert(dev) < 0) {
+	        return -EIO;
+	   }*/
+
+	// not sure if this works
+	/*if (bq35100_set_battery_alert(dev, 0b0010) < 0) {
+	        return -EIO;
+	   }*/
+
+	// if (bq35100_set_security_mode(dev, BQ35100_SECURITY_FULL_ACCESS)) {
+	//     return EIO;
+	// }
+
+	/*if (bq35100_new_battery(dev, 2200) < 0) {
+	        return -EIO;
+	   }*/
+
+
+	// if (bq35100_get_gauge_mode(dev) < 0) {
+	//     return -EIO;
+	// }
+
+	/* put the mode from the .yaml / .overlay as parameter here */
+	if (bq35100_set_gauge_mode(dev, BQ35100_EOS_MODE)) {
+		return EIO;
+	}
+
+	/* put the temp sensor choice from the .yaml / .overlay as parameter here */
+	if (bq35100_use_int_temp(dev, false) < 0) {
+		return -EIO;
+	}
+
+	/* put the capacity from the .yaml / .overlay as parameter here */
+	if (bq35100_set_design_capacity(dev, 2200) < 0) {
+		return -EIO;
+	}
+
 	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_SEALED)) {
 		return EIO;
 	}
 
-	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_UNSEALED)) {
-		return EIO;
-	}
-	
-	/*if (bq35100_get_battery_alert(dev) < 0) {
-		return -EIO;
-	}*/
-
-	// not sure if this works
-	/*if (bq35100_set_battery_alert(dev, 0b0010) < 0) {
-		return -EIO;
-	}*/
-
-	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_FULL_ACCESS)) {
-	    return EIO;
-	}
-
-	/*if (bq35100_new_battery(dev, 2200) < 0) {
-		return -EIO;
-	}*/
-
-	if (bq35100_set_gauge_mode(dev, BQ35100_EOS_MODE)) {
-	    return EIO;
-	}
-
-	if (bq35100_get_gauge_mode(dev) < 0) {
-	    return -EIO;
-	}
-
 	if (bq35100_gauge_start(dev) < 0) {
-	    return -EIO;
-	}
-
-	/*if (bq35100_use_int_temp(dev, false) < 0) {
 		return -EIO;
-	}*/
+	}
 
 	/*if (bq35100_enter_cal_mode(dev, true) < 0) {
-		return -EIO;
-	}*/
+	        return -EIO;
+	   }*/
 
 	/*if (bq35100_cal_voltage(dev, 3615) < 0) {
-		return -EIO;
-	}*/
+	        return -EIO;
+	   }*/
 
 	/*if (bq35100_cal_current(dev, 13) < 0) {
-		return -EIO;
-	}*/
+	        return -EIO;
+	   }*/
 
 	/*if (bq35100_cal_temp(dev, 2950) < 0) {
-		return -EIO;
-	}*/
+	        return -EIO;
+	   }*/
 
 	/*if(bq35100_gauge_stop(dev) < 0) {
 	     return -EIO;
-	}*/
+	   }*/
 
 	return 0;
 }
@@ -1605,11 +1617,11 @@ static int bq35100_init(const struct device *dev)
 		.bus = DEVICE_DT_GET(DT_INST_BUS(n)),		  \
 		.i2c_addr = DT_INST_REG_ADDR(n),		  \
 		BQ35100_GE(n)					  \
-		.design_capacity = DT_INST_PROP(n, capacity),  \
-		.gauge_mode =					   \
+		.design_capacity = DT_INST_PROP(n, capacity),	  \
+		.gauge_mode =					  \
 			DT_ENUM_IDX(DT_DRV_INST(n), gauge_mode),  \
-		.temp_sensor =					   \
-			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor),  \
+		.temp_sensor =					  \
+			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor), \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

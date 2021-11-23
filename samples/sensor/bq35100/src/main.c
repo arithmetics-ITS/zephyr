@@ -22,6 +22,8 @@ static void pm_info(enum pm_device_state state, int status)
 	case PM_DEVICE_STATE_OFF:
 		printk("Enter OFF_STATE ");
 		break;
+	default:
+		printk("State not supported");
 	}
 
 	if (status) {
@@ -45,21 +47,6 @@ void main(void)
 		return;
 	}
 
-#ifdef CONFIG_PM_DEVICE
-	/* Testing the power modes */
-	enum pm_device_state p_state;
-	int ret;
-
-	p_state = PM_DEVICE_STATE_OFF;
-	ret = pm_device_state_set(dev, p_state);
-	pm_info(p_state, ret);
-	k_sleep(K_MSEC(1000));
-
-	p_state = PM_DEVICE_STATE_ACTIVE;
-	ret = pm_device_state_set(dev, p_state);
-	pm_info(p_state, ret);
-#endif
-
 	/* example of how you can call function in the driver from main.
 	If you need to pass parameters use val1 and val2.
 	SENSOR_ATTR_BQ35100_EXAMPLE1 is just as an example. You could create
@@ -69,7 +56,18 @@ void main(void)
 	sensor_attr_set(dev, SENSOR_CHAN_ALL, SENSOR_ATTR_BQ35100_EXAMPLE1, &val);*/
 
 
+#ifdef CONFIG_PM_DEVICE
+	enum pm_device_state p_state;
+	int ret;
+#endif
+
 	while (1) {
+#ifdef CONFIG_PM_DEVICE
+		p_state = PM_DEVICE_STATE_ACTIVE;
+		ret = pm_device_state_set(dev, p_state);
+		pm_info(p_state, ret);
+#endif
+
 		if (sensor_sample_fetch(dev) < 0) {
 			printk("Sample fetch failed\n");
 			return;
@@ -95,6 +93,12 @@ void main(void)
 
 		sensor_channel_get(dev, SENSOR_CHAN_GAUGE_ACCUMULATED_CAPACITY, &val);
 		printf("Acc Capacity :  %.3f mAh\n\n", sensor_value_to_double(&val));
+
+#ifdef CONFIG_PM_DEVICE
+		p_state = PM_DEVICE_STATE_OFF;
+		ret = pm_device_state_set(dev, p_state);
+		pm_info(p_state, ret);
+#endif
 
 		k_sleep(K_MSEC(3000));
 	}

@@ -9,3 +9,9 @@ menuconfig BQ35100
 	help
 	  Enable driver for BQ35100 BQ35100 lithium primary battery fuel gauge.
 
+if BQ35100
+
+config BQ35100_CALIBRATION_MODE
+	bool "Calibration mode"
+
+endif # BQ35100

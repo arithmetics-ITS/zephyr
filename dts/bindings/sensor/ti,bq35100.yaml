@@ -30,18 +30,14 @@ properties:
         The design capacity of the battery in mAh.
 
     gauge-mode:
-      type: int
+      type: string
       required: true
       description: |
         The gauge mode the device in currently.
-
-        0 = ACCUMULATOR
-        1 = SOH
-        2 = EOS
       enum:
-        - 0
-        - 1
-        - 2
+        - "ACCUMULATOR"
+        - "SOH"
+        - "EOS"
 
     temp-sensor:
       type: string

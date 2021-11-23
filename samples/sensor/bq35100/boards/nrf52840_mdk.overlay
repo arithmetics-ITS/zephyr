@@ -13,6 +13,6 @@
 		ge-gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
 		alert-gpios = <&gpio0 21 GPIO_ACTIVE_LOW>;
 		capacity = <2200>;
-		gauge-mode = <2>;
+		gauge-mode = <"EOS">;
 	};
 };

@@ -39,7 +39,7 @@ properties:
         - "SOH"
         - "EOS"
 
-    temp-sensor:
+    temp-sensor-src:
       type: string
       required: false
       default: "external"

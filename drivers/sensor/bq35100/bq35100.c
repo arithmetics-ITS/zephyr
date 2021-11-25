@@ -1555,18 +1555,15 @@ static int bq35100_init(const struct device *dev)
 	//     return -EIO;
 	// }
 
-	/* put the mode from the .yaml / .overlay as parameter here */
-	if (bq35100_set_gauge_mode(dev, BQ35100_EOS_MODE)) {
+	if (bq35100_set_gauge_mode(dev, cfg->gauge_mode)) {
 		return EIO;
 	}
 
-	/* put the temp sensor choice from the .yaml / .overlay as parameter here */
-	if (bq35100_use_int_temp(dev, false) < 0) {
+	if (bq35100_use_int_temp(dev, cfg->temp_sensor_src) < 0) {
 		return -EIO;
 	}
 
-	/* put the capacity from the .yaml / .overlay as parameter here */
-	if (bq35100_set_design_capacity(dev, 2200) < 0) {
+	if (bq35100_set_design_capacity(dev, cfg->design_capacity) < 0) {
 		return -EIO;
 	}
 
@@ -1620,8 +1617,8 @@ static int bq35100_init(const struct device *dev)
 		.design_capacity = DT_INST_PROP(n, capacity),	  \
 		.gauge_mode =					  \
 			DT_ENUM_IDX(DT_DRV_INST(n), gauge_mode),  \
-		.temp_sensor =					  \
-			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor), \
+		.temp_sensor_src =					  \
+			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor_src), \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

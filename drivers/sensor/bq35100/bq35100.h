@@ -308,7 +308,7 @@ struct bq35100_config {
 
 	uint16_t design_capacity;
 	bq35100_gauge_mode_t gauge_mode;
-	uint8_t temp_sensor;
+	uint8_t temp_sensor_src;
 };
 
 #endif  /* ZEPHYR_DRIVERS_SENSOR_BQ35100_BQ35100_H_ */

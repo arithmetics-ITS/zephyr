@@ -39,15 +39,15 @@ properties:
         - "SOH"
         - "EOS"
 
-    temp-sensor:
-      type: string
+    temp-sensor-src:
+      type: int
       required: false
-      default: "external"
+      default: 0
       description: |
         Whether to use internal or external temperature sensor for calculations.
 
-        internal = Use internal temperature sensor.
-        external = Use external temperature sensor.
+        0 = Use external temperature sensor.
+        1 = Use internal temperature sensor.
       enum:
-        - "internal"
-        - "external"
+        - 0
+        - 1

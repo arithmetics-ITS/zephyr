@@ -1529,9 +1529,9 @@ static int bq35100_init(const struct device *dev)
 		return -EIO;
 	}
 
-	// if (bq35100_set_security_mode(dev, BQ35100_SECURITY_UNSEALED)) {
-	// 	return EIO;
-	// }
+	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_UNSEALED)) {
+		return EIO;
+	}
 
 	/*if (bq35100_get_battery_alert(dev) < 0) {
 	        return -EIO;
@@ -1550,26 +1550,29 @@ static int bq35100_init(const struct device *dev)
 	        return -EIO;
 	   }*/
 
-
-	// if (bq35100_get_gauge_mode(dev) < 0) {
-	//     return -EIO;
-	// }
-
-	if (bq35100_set_gauge_mode(dev, BQ35100_EOS_MODE)) {
+	if (bq35100_set_gauge_mode(dev, cfg->gauge_mode)) {
 		return EIO;
 	}
 
-	if (bq35100_use_int_temp(dev, false) < 0) {
+   	/*if (bq35100_get_gauge_mode(dev) < 0) {
+	     return -EIO;
+	}*/
+
+	if (bq35100_use_int_temp(dev, cfg->temp_sensor_src) < 0) {
+		return -EIO;
+	}
+
+	if (bq35100_set_design_capacity(dev, cfg->design_capacity) < 0) {
 		return -EIO;
 	}
 
 	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_SEALED)) {
 		return EIO;
 	}
-
 	if (bq35100_gauge_start(dev) < 0) {
 		return -EIO;
 	}
+	
 
 	/*if (bq35100_enter_cal_mode(dev, true) < 0) {
 	        return -EIO;
@@ -1613,8 +1616,8 @@ static int bq35100_init(const struct device *dev)
 		.design_capacity = DT_INST_PROP(n, capacity),	  \
 		.gauge_mode =					  \
 			DT_ENUM_IDX(DT_DRV_INST(n), gauge_mode),  \
-		.temp_sensor =					  \
-			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor), \
+		.temp_sensor_src =					  \
+			DT_ENUM_IDX(DT_DRV_INST(n), temp_sensor_src), \
 	};							  \
 								  \
 	DEVICE_DT_INST_DEFINE(n,				  \

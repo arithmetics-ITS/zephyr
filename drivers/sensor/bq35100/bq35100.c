@@ -461,7 +461,7 @@ static int bq35100_wait_for_status(const struct device *dev, uint16_t expected,
 	uint16_t status;
 	uint8_t i;
 
-	for (i = 0; i < 5; i++) {
+	for (i = 0; i < 10; i++) {
 		if (bq35100_get_status(dev, &status) < 0) {
 			LOG_DBG("Getting status failed");
 			return -1;
@@ -580,7 +580,7 @@ static int bq35100_gauge_stop(const struct device *dev)
 	}
 
 	// Stopping takes a lot of time
-	if (bq35100_wait_for_status(dev, 0, BQ35100_GA_BIT_MASK, 500) < 0) {
+	if (bq35100_wait_for_status(dev, 0, BQ35100_GA_BIT_MASK, 1800) < 0) {
 		LOG_ERR("Gauge not stopped");
 		dev_data->gauge_enabled = true;
 
@@ -1292,7 +1292,7 @@ static int bq35100_device_pm_ctrl(const struct device *dev,
 	case PM_DEVICE_ACTION_RESUME:
 		if (curr_state == PM_DEVICE_STATE_OFF) {
 			ret = bq35100_set_gauge_enable(dev, true);
-			k_sleep(K_MSEC(200));
+			k_sleep(K_MSEC(300));
 			ret = bq35100_gauge_start(dev);
 		}
 		break;
@@ -1569,6 +1569,7 @@ static int bq35100_init(const struct device *dev)
 	if (bq35100_set_security_mode(dev, BQ35100_SECURITY_SEALED)) {
 		return EIO;
 	}
+
 	if (bq35100_gauge_start(dev) < 0) {
 		return -EIO;
 	}
